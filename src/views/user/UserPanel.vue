@@ -87,7 +87,7 @@
     return imageUploadHandle(options,uploadAvatar,(res)=>{
       const path=res.data.data;
       fileList.value[0].url=path
-      userStore.userInfo.pricture=path
+      userStore.userInfo.picture=path
       userStore.baseUserInfo.picture=path
     })
   };
