@@ -19,21 +19,6 @@
                         <div class="protocol">
                             点击「登录」表示已阅读并同意 <a style="color:rgb(var(--primary-6))">服务条款</a>
                         </div>
-                        <a-divider orientation="center" class="half-divider">
-                            <span style="color:var(--color-text-3)">其他方式登录</span>
-                        </a-divider>
-                        <!-- 第三方登录 -->
-                        <div class="tripa_login">
-                            <a href="/uapi/public/user/login/QQ/render" class="tripa" style="flex:3" title="QQ">
-                                <img src="@/assets/img/login_qq.png" />
-                            </a>
-                            <a href="/uapi/public/user/login/GITEE/render" class="tripa" style="flex:2" title="Gitee">
-                                <img src="@/assets/img/login_gitee.png" />
-                            </a>
-                            <a href="/uapi/public/user/login/GITHUB/render" class="tripa" style="flex:1" title="GitHub">
-                                <img src="@/assets/img/login_github.png" />
-                            </a>
-                        </div>
                     </div>
 
                 </div>
@@ -73,17 +58,7 @@ const tagList = [
 const route = useRoute()
 const router = useRouter();
 const userStore = useUserStore();
-// 第三方登录跳转后保存
-const token = route.query.token;
-console.log(token)
-if (token) {
-    userStore.token = token;
-    const prePageName = localStorage.getItem("prePageName")
-    if (prePageName) {
-        localStorage.clear("prePageName")
-        router.push()
-    }
-}
+
 // 确认标签
 const checkTag = (type) => {
     type = parseInt(type)
@@ -206,42 +181,6 @@ console.log(app_name)
                     margin-top: 20px;
                     color: var(--color-text-3);
                     font-size: 14px;
-                }
-
-                .half-divider {
-                    margin-top: 40px;
-                }
-
-                .tripa_login {
-                    display: flex;
-                    height: 50px;
-                    width: 100%;
-                    align-items: center;
-
-                    .tripa {
-                        margin: 0 5px;
-                        height: 100%;
-                        border-radius: 5px;
-                        border: 1px solid var(--color-fill-1);
-                        box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.1);
-                        transition: all .3s;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        background: var(--color-bg-4) url(@/assets/img/login_btn_bg.svg);
-                        background-size: contain;
-                        background-repeat: no-repeat;
-                        background-position: center;
-
-                        img {
-                            height: 60%;
-                        }
-
-                        &:hover {
-                            box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.1);
-                            transform: scale(.95);
-                        }
-                    }
                 }
             }
 
