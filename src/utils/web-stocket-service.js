@@ -55,6 +55,11 @@ export default class SocketService {
             // 重置重新连接的次数
             this.connectRetryCount = 0;
         };
+        // 处理连接错误
+        this.ws.onerror = (error) => {
+            console.error('WebSocket连接错误:', error);
+            this.connected = false;
+        };
         // 1.连接服务端失败
         // 2.当连接成功之后, 服务器关闭的情况
         this.ws.onclose = () => {
@@ -113,7 +118,7 @@ export default class SocketService {
     //关闭连接
     close(){
         this.handleClose=true
-        this.ws.close();
+        this.ws.close(1000, "正常关闭");
     }
     wsTimeout(count,time){
         return count*time;
