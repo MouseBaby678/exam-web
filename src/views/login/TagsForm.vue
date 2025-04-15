@@ -162,6 +162,8 @@ import {Message} from '@arco-design/web-vue'
 import {loginRequest,registerRequest,forgetPassRequest,sendEmailCodeRequest} from '@/apis/auth-api.js'
 import useUserStore from "../../sotre/user-store";
 import { useRouter } from "vue-router";
+
+const emit = defineEmits(['update:loginType']);
 const app_url=location.origin;
 const emailLoading=ref(false)
 const props = defineProps({
@@ -212,7 +214,17 @@ const submit=()=>{
   }else if(loginType==1){
     registerRequest(registerForm,registerForm.verifiCode)
     .then(res=>{
+      Message.success("注册成功，请登录");
       loading.value=false;
+      // 清空注册表单
+      registerForm.email = "";
+      registerForm.username = "";
+      registerForm.password = "";
+      registerForm.checkPass = "";
+      registerForm.verifiCode = "";
+      registerForm.nickname = "";
+      // 自动切换到登录页面
+      emit('update:loginType', 0);
     })
     .catch(e=>{
       loading.value=false

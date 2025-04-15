@@ -14,7 +14,7 @@
                     <!-- 标签选项 -->
                     <Tabs style="margin:20px 0" v-model:tag="loginType" :tagList="tagList" @tab-click="taggleTag" />
                     <!-- 操作表单 -->
-                    <tags-form :loginType="loginType" :tagList="tagList"></tags-form>
+                    <tags-form v-model:loginType="loginType" :tagList="tagList"></tags-form>
                     <div v-show="loginType == 0">
                         <div class="protocol">
                             点击「登录」表示已阅读并同意 <a style="color:rgb(var(--primary-6))">服务条款</a>
