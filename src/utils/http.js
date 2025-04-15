@@ -53,10 +53,25 @@ instance.interceptors.response.use(function(response) {
         return response
     },
     function(error) {
-        if(error.response.status==500){
-            Message.error("服务器连接失败~");
+        if(error.response){
+            if(error.response.status==500){
+                Message.error("服务器连接失败~");
+            } else if(error.response.status==401){
+                Message.error("认证失败，请重新登录");
+            } else if(error.response.status==400){
+                // 根据响应内容提供更具体的信息
+                if(error.response.data && error.response.data.error_description){
+                    Message.error(error.response.data.error_description);
+                } else {
+                    Message.error("请求参数错误");
+                }
+            } else {
+                Message.error("请求失败，请稍后再试");
+            }
+            return Promise.reject(error.response);
+        } else {
+            Message.error("网络连接异常");
+            return Promise.reject(error);
         }
-        // 对响应错误做点什么
-        return Promise.reject(error.response)
     });
 export default instance;

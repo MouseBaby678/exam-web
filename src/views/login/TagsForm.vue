@@ -210,6 +210,17 @@ const submit=()=>{
       userStore.getBaseUserInfo()
     }).catch(err=>{
       loading.value=false;
+      // 处理登录失败情况
+      let errorMessage = "登录失败";
+      if (err && err.data) {
+        // 如果有详细错误信息，则显示
+        if (err.data.error_description) {
+          errorMessage = err.data.error_description;
+        } else if (err.data.msg) {
+          errorMessage = err.data.msg;
+        }
+      }
+      Message.error(errorMessage);
     })
   }else if(loginType==1){
     registerRequest(registerForm,registerForm.verifiCode)
@@ -228,14 +239,31 @@ const submit=()=>{
     })
     .catch(e=>{
       loading.value=false
+      let errorMessage = "注册失败";
+      if (e && e.data && e.data.msg) {
+        errorMessage = e.data.msg;
+      }
+      Message.error(errorMessage);
     })
   }else{
     forgetPassRequest(forgetForm.email,forgetForm.verifiCode,forgetForm.password)
     .then(res=>{
       loading.value=false;
+      Message.success("密码重置成功，请登录");
+      // 清空找回密码表单
+      forgetForm.email = "";
+      forgetForm.password = "";
+      forgetForm.verifiCode = "";
+      // 自动切换到登录页面
+      emit('update:loginType', 0);
     })
     .catch(e=>{
       loading.value=false;
+      let errorMessage = "密码重置失败";
+      if (e && e.data && e.data.msg) {
+        errorMessage = e.data.msg;
+      }
+      Message.error(errorMessage);
     })
   }
 

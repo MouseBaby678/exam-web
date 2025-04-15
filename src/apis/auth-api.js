@@ -10,7 +10,7 @@ export const registerRequest=(params,code)=>{
 }
 // 找回密码
 export const forgetPassRequest=(email,code,password)=>{
-    return axios.post(`/uapi/public/user/forgetPass?email=${email}&code=${code}`,password)
+    return axios.post(`/uapi/public/user/forgetPass?email=${email}&code=${code}`, {password: password})
 }
 // 发送邮箱验证码
 export const sendEmailCodeRequest=(type,email)=>{
