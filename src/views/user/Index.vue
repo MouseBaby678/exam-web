@@ -8,7 +8,7 @@
     <ADivider/>
     <a-row class="wrapper">
       <a-col :span="24">
-        <a-tabs default-active-key="1" type="rounded">
+        <a-tabs :active-key="activeTab" type="rounded" @tab-click="handleTabChange">
           <a-tab-pane key="1" title="基础信息">
             <UserInfo />
           </a-tab-pane>
@@ -24,17 +24,43 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
+  import { ref, onMounted, watch } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
   import UserPanel from './UserPanel.vue';
   import UserInfo from "./UserInfo.vue";
   import SecuritySettings from './SecuritySetting.vue';
   import SchoolAuth from './SchoolAuth.vue';
-</script>
-
-<script lang="ts">
-  export default {
+  
+  const route = useRoute();
+  const router = useRouter();
+  const activeTab = ref('1');
+  
+  // 组件名称定义
+  defineOptions({
     name: 'Setting',
+  });
+
+  // 处理URL参数中的tab
+  const handleRouteChange = () => {
+    const tab = route.query.tab;
+    if (tab && ['1', '2', '3'].includes(tab)) {
+      activeTab.value = tab;
+    }
   };
+
+  // 监听路由变化
+  watch(() => route.query, handleRouteChange);
+
+  // 切换标签时更新URL
+  const handleTabChange = (key) => {
+    activeTab.value = key;
+    router.push({ query: { ...route.query, tab: key } });
+  };
+
+  onMounted(() => {
+    handleRouteChange();
+  });
 </script>
 
 <style scoped lang="less">

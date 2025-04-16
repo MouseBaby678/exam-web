@@ -41,6 +41,11 @@ instance.interceptors.response.use(function(response) {
                 Message.success(msg)
                 return response
             }
+            // 特殊处理 A0000 用户未认证的情况，这是正常业务流程不应当视为错误
+            if(code === "A0000" && msg === "用户未完成认证"){
+                console.log('用户未认证状态（A0000），作为正常响应处理');
+                return response
+            }
             if(code.startsWith("A")){
                 Message.info(msg)
             }else if(code.startsWith("B")){

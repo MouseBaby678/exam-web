@@ -18,19 +18,71 @@
     </div>
     <div v-else class="not-certified">
         <slot name="notCertified">
-            <a-button type="primary">未认证，去认证</a-button>
+            <a-button type="primary" @click="$router.push('/user/setting?tab=3')">未认证，去认证</a-button>
         </slot>
     </div>
 </template>
 <script setup>
+import { computed, onMounted, watch, ref } from 'vue';
 import useUserStore from '../../sotre/user-store';
 import {getImageUrl} from '../../utils/image.js'
-const props=defineProps({
-    userAuthInfo:Object|null
+
+const props = defineProps({
+    userAuthInfo: Object
 })
-const userStore=useUserStore();
-const userAuthInfo=props.userAuthInfo??userStore.userInfo;
-const isAuth=userAuthInfo.jobNo!=null;
+
+const userStore = useUserStore();
+const userAuthInfo = computed(() => props.userAuthInfo || userStore.userInfo);
+const isAuth = computed(() => {
+    console.log('认证状态检查 - store状态:', userStore.authStatus, '用户信息:', userAuthInfo.value);
+    
+    // 首先检查store中的authStatus
+    if (userStore.authStatus === 1) {
+        return true;
+    }
+    
+    // 其次检查userAuthInfo中的jobNo
+    if (userAuthInfo.value && userAuthInfo.value.jobNo) {
+        // 如果发现用户信息中有学号但store状态为未认证，自动同步状态
+        if (userStore.authStatus !== 1) {
+            console.log('发现状态不一致，自动同步为已认证');
+            userStore.updateAuthStatus(1);
+        }
+        return true;
+    }
+    
+    // 最后，检查store中用户信息的authId
+    if (userStore.userInfo && userStore.userInfo.authId) {
+        console.log('通过userInfo.authId判断为已认证');
+        if (userStore.authStatus !== 1) {
+            userStore.updateAuthStatus(1);
+        }
+        return true;
+    }
+    
+    return false;
+});
+
+// 监听认证状态变化
+watch(() => userStore.authStatus, (newVal) => {
+    console.log('认证状态变化:', newVal);
+    if (newVal === 1 && (!userAuthInfo.value || !userAuthInfo.value.jobNo)) {
+        // 如果认证状态变为已认证，但没有详细认证信息，尝试更新
+        console.log('认证状态已更新，但缺少详细信息，尝试刷新');
+        userStore.getUserInfo();
+    }
+});
+
+onMounted(() => {
+    // 组件挂载时检查状态一致性
+    if ((userAuthInfo.value && userAuthInfo.value.jobNo) || 
+        (userStore.userInfo && userStore.userInfo.authId)) {
+        if (userStore.authStatus !== 1) {
+            console.log('挂载时发现状态不一致，修正为已认证');
+            userStore.updateAuthStatus(1);
+        }
+    }
+});
 </script>
 <style lang="less">
 :deep(.arco-avatar){

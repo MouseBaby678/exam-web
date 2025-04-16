@@ -37,10 +37,10 @@
         <template #value="{ value, data }">
           <a-tag
             v-if="data.label === '学校认证'"
-            color="green"
+            :color="userStore.isAuthenticated ? 'green' : 'orange'"
             size="small"
           >
-            {{value}}
+            {{ userStore.isAuthenticated ? "已认证" : "未认证" }}
           </a-tag>
           <span v-else>{{ value }}</span>
         </template>
@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
+  import { ref, onMounted, watch } from 'vue';
   import useUserStore from '../../sotre/user-store';
   import {uploadAvatar} from '../../apis/file-api'
   import {imageUploadHandle,getImageUrl} from '../../utils/image'
@@ -60,14 +60,14 @@
     name: 'avatar.png',
     url: userStore.userInfo.picture,
   };
-  const renderData = [
+  const renderData = ref([
     {
       label: '昵称',
       value: userStore.baseUserInfo.nickname,
     },
     {
       label: '学校认证',
-      value: userStore.userInfo.schoolId==undefined?"未认证":"已认证",
+      value: userStore.isAuthenticated ? "已认证" : "未认证",
     },
     {
       label: '用户名',
@@ -81,7 +81,7 @@
       label: '注册时间',
       value: userStore.baseUserInfo.createdAt,
     },
-  ] ;
+  ]);
   const fileList = ref([file]);
   const customRequest = (options) => {
     return imageUploadHandle(options,uploadAvatar,(res)=>{
@@ -91,6 +91,32 @@
       userStore.baseUserInfo.picture=path
     })
   };
+
+  onMounted(async () => {
+    // 确保用户信息已加载
+    if (!userStore.userInfo && !userStore.baseUserInfo) {
+      try {
+        // 先尝试获取用户完整信息
+        await userStore.getUserInfo();
+        
+        // 如果完整信息获取失败，尝试获取基本信息
+        if (!userStore.userInfo) {
+          await userStore.getBaseUserInfo();
+        }
+      } catch (error) {
+        console.error('加载用户信息失败', error);
+      }
+    }
+    
+    // 获取认证状态
+    userStore.getAuthStatus();
+  });
+
+  // 添加watcher监听认证状态变化
+  watch(() => userStore.isAuthenticated, (newVal) => {
+    console.log('认证状态变化，更新显示', newVal);
+    renderData.value[1].value = newVal ? "已认证" : "未认证";
+  });
 </script>
 
 <style scoped lang="less">

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia' 
-import { userAuthInfoRequest,baseUserInfoRequest } from '../apis/user-api'
+import { userAuthInfoRequest, baseUserInfoRequest, getAuthStatusRequest } from '../apis/user-api'
 import SocketService from '../utils/web-stocket-service.js'
 import {getImageUrl} from '../utils/image'
 import {IconApps} from "@arco-design/web-vue/es/icon";
@@ -10,10 +10,12 @@ const useUserStore = defineStore({
         token:null,
         userInfo:null,
         baseUserInfo:null,
+        authStatus: null, // 认证状态：0-未认证，1-已认证
         theme:'light'
     }),
     getters:{
         isLogin: (state) => state.token!=null,
+        isAuthenticated: (state) => state.authStatus === 1,
         menu:()=>{
             return [
                 {
@@ -49,16 +51,61 @@ const useUserStore = defineStore({
     },
     actions:{
         async getUserInfo(){
-            const resp=await userAuthInfoRequest()
-            const data=resp.data.data;
-            data.picture=getImageUrl(data.picture)
-            this.userInfo=data
+            try {
+                const resp = await userAuthInfoRequest()
+                const data = resp.data.data;
+                data.picture = getImageUrl(data.picture)
+                this.userInfo = data
+                
+                // 获取认证状态
+                if (data && data.id) {
+                    await this.getAuthStatus()
+                }
+                
+                return data
+            } catch (error) {
+                console.error('获取用户信息失败', error)
+                return null
+            }
         },
         async getBaseUserInfo(){
-            const resp=await baseUserInfoRequest()
-            const data=resp.data.data;
-            data.picture=getImageUrl(data.picture)
-            this.baseUserInfo=data
+            try {
+                const resp = await baseUserInfoRequest()
+                const data = resp.data.data;
+                data.picture = getImageUrl(data.picture)
+                this.baseUserInfo = data
+                return data
+            } catch (error) {
+                console.error('获取用户基本信息失败', error)
+                return null
+            }
+        },
+        async getAuthStatus(){
+            // 尝试从userInfo或baseUserInfo中获取用户ID
+            let userId = null;
+            
+            if (this.userInfo && this.userInfo.id) {
+                userId = this.userInfo.id;
+            } else if (this.baseUserInfo && this.baseUserInfo.id) {
+                userId = this.baseUserInfo.id;
+                console.log('使用baseUserInfo中的ID获取认证状态:', userId);
+            } else {
+                console.warn('获取认证状态：未找到有效的用户ID, 将默认设置为未认证状态');
+                this.authStatus = 0;
+                return;
+            }
+            
+            try {
+                const resp = await getAuthStatusRequest()
+                if (resp.data.code === '00000') {
+                    this.authStatus = resp.data.data.status
+                } else {
+                    this.authStatus = 0
+                }
+            } catch (error) {
+                console.error('获取认证状态失败', error)
+                this.authStatus = 0
+            }
         },
         toggleTheme(dark){
             if (dark) {
@@ -69,10 +116,14 @@ const useUserStore = defineStore({
                 document.body.removeAttribute('arco-theme');
               }
         },
+        updateAuthStatus(status) {
+            this.authStatus = status
+        },
         logOut(){
-            this.userInfo=null
-            this.token=null
-            this.baseUserInfo=null
+            this.userInfo = null
+            this.token = null
+            this.baseUserInfo = null
+            this.authStatus = null
             SocketService.instance?.close()
         }
     },
