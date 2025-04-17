@@ -4,9 +4,14 @@
 
         <!-- 操作区 -->
         <div class="course-operation">
-            <a-button type="primary" @click="showAddModal(0)" shape="round">添加课程</a-button>
+            <!-- 学生显示添加课程按钮 -->
+            <a-button v-if="userStore.isStudent" type="primary" @click="showAddModal(0)" shape="round">添加课程</a-button>
+            
+            <!-- 教师显示创建课程按钮 -->
+            <a-button v-else type="primary" @click="showCreateCourseModal" shape="round">创建课程</a-button>
+            
             <a-radio-group type="button" @change="statusChange" default-value="0">
-                <a-radio value="0">正在学</a-radio>
+                <a-radio value="0">{{ userStore.isTeacher ? '教授中' : '正在学' }}</a-radio>
                 <a-radio value="1">已完结</a-radio>
             </a-radio-group>
         </div>
@@ -54,17 +59,33 @@
                 </a-form-item>
             </a-form>
         </a-modal>
+        
+        <!-- 创建课程模态框 -->
+        <a-modal simple v-model:visible="createCourseModalVisible" @ok="createCourse" title="创建课程">
+            <a-form :model="courseCreateInfo">
+                <a-form-item field="name" label="课程名称" :rules="[{ required: true, message: '请输入课程名称' }]">
+                    <a-input v-model="courseCreateInfo.name" placeholder="输入课程名称" />
+                </a-form-item>
+                <a-form-item field="introduce" label="课程介绍">
+                    <a-textarea v-model="courseCreateInfo.introduce" placeholder="输入课程介绍" />
+                </a-form-item>
+            </a-form>
+        </a-modal>
     </div>
 </template>
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { courseListRequest, stuAddCourseRequest } from '@/apis/course-api.js'
+import { courseListRequest, stuAddCourseRequest, teaCreateCourseRequest } from '@/apis/course-api.js'
 import useCourseStore from '../../sotre/course-store';
+import useUserStore from '../../sotre/user-store'; // 导入用户存储
 import { getImageUrl } from '../../utils/image'
+import { Message } from '@arco-design/web-vue'; // 导入消息组件
+
 const route = useRoute()
 const router = useRouter()
 const courseStore = useCourseStore()
+const userStore = useUserStore() // 获取用户存储实例
 
 const modalTitle = ref('添加课程');
 //0 加入、2：修改
@@ -74,8 +95,19 @@ const stuAddInfo = reactive({
     code: ""
 })
 
-// 角色固定为学生
-const role = 'student';
+// 创建课程相关
+const createCourseModalVisible = ref(false);
+const courseCreateInfo = reactive({
+    name: "",
+    introduce: ""
+});
+
+// 根据用户实际角色动态设置
+const role = computed(() => {
+    // 根据角色返回对应的字符串
+    return userStore.isTeacher ? 'teacher' : 'student'
+})
+console.log('当前用户角色:', role.value)
 // 是否结课
 const isEnd = ref(0)
 const currPage = ref(1)
@@ -106,7 +138,7 @@ const showAddModal = (type, data) => {
 
 const getCourseList = () => {
     loading.value = true
-    courseListRequest(role, currPage.value, isEnd.value)
+    courseListRequest(role.value, currPage.value, isEnd.value)
         .then(({ data }) => {
             console.log(data)
             const result = data.data;
@@ -137,6 +169,29 @@ const toCourse = (data) => {
             courseId: data.id
         }
     })
+}
+
+// 显示创建课程模态框
+const showCreateCourseModal = () => {
+    courseCreateInfo.name = "";
+    courseCreateInfo.introduce = "";
+    createCourseModalVisible.value = true;
+}
+
+// 创建课程处理
+const createCourse = () => {
+    if (!courseCreateInfo.name) {
+        Message.error('课程名称不能为空');
+        return;
+    }
+    
+    teaCreateCourseRequest(courseCreateInfo).then(() => {
+        Message.success('课程创建成功');
+        createCourseModalVisible.value = false;
+        getCourseList(); // 刷新课程列表
+    }).catch(err => {
+        Message.error('课程创建失败：' + (err.message || '未知错误'));
+    });
 }
 
 // 页面加载时获取课程列表

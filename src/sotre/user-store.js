@@ -16,6 +16,10 @@ const useUserStore = defineStore({
     getters:{
         isLogin: (state) => state.token!=null,
         isAuthenticated: (state) => state.authStatus === 1,
+        // 判断是否为教师（role=1）
+        isTeacher: (state) => state.baseUserInfo?.role === '1',
+        // 判断是否为学生（role=0）
+        isStudent: (state) => state.baseUserInfo?.role === '0',
         menu:()=>{
             return [
                 {
@@ -74,6 +78,15 @@ const useUserStore = defineStore({
                 const data = resp.data.data;
                 data.picture = getImageUrl(data.picture)
                 this.baseUserInfo = data
+
+                // 在控制台打印用户类型
+                const roleText = data.role === '1' ? '教师' : '学生';
+                console.log(`当前用户角色: ${roleText}`, {
+                    用户ID: data.username,
+                    用户名: data.nickname,
+                    角色值: data.role
+                });
+
                 return data
             } catch (error) {
                 console.error('获取用户基本信息失败', error)
