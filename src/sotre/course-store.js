@@ -12,7 +12,11 @@ const useCourseStore = defineStore({
   getters: {
     isTeacher(state) {
       const userStore = useUserStore();
-      return userStore.userInfo?.userId == state.courseInfo?.userId;
+      return userStore.isTeacher && userStore.userInfo?.userId == state.courseInfo?.userId;
+    },
+    isCourseManager(state) {
+      const userStore = useUserStore();
+      return userStore.isTeacher;
     },
     menu() {
       const id = this.courseInfo["id"];
@@ -28,13 +32,6 @@ const useCourseStore = defineStore({
           visble: true,
         },
         {
-          name: "作业",
-          icon: IconSelectAll,
-          key: "Homework",
-          params: params,
-          visble: true,
-        },
-        {
           name: "考试",
           icon: IconAt,
           key: "ExamManage",
@@ -46,7 +43,7 @@ const useCourseStore = defineStore({
           icon: IconAt,
           key: "ExamPaperManger",
           params: params,
-          visble: this.isTeacher,
+          visble: this.isCourseManager,
         },
         {
           name: "题库",

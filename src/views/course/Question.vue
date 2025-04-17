@@ -12,45 +12,47 @@
             </a-breadcrumb>
         </template>
         <template #extra>
-            <div class="opearte_area" v-if="isTeacher && !props.selectMode">
-                <a-button-group>
-                <a-dropdown :popup-max-height="false" trigger="hover">
-                    <a-button status="info">
-                        <template #icon>
-                            <icon-edit />
+            <RoleAccess required-role="teacher" :require-course-manager="true">
+                <div class="opearte_area" v-if="!props.selectMode">
+                    <a-button-group>
+                    <a-dropdown :popup-max-height="false" trigger="hover">
+                        <a-button status="info">
+                            <template #icon>
+                                <icon-edit />
+                            </template>
+                            批量操作
+                        </a-button>
+                        <template #content>
+                            <a-doption><span style="padding: 0 15px;">批量删除</span></a-doption>
+                            <a-doption><span style="padding: 0 15px;">（公开）</span></a-doption>
+                            <a-doption><span style="padding: 0 15px;">（课程）</span></a-doption>
+                            <a-doption><span style="padding: 0 15px;">（自己）</span></a-doption>
+
                         </template>
-                        批量操作
-                    </a-button>
-                    <template #content>
-                        <a-doption><span style="padding: 0 15px;">批量删除</span></a-doption>
-                        <a-doption><span style="padding: 0 15px;">（公开）</span></a-doption>
-                        <a-doption><span style="padding: 0 15px;">（课程）</span></a-doption>
-                        <a-doption><span style="padding: 0 15px;">（自己）</span></a-doption>
+                    </a-dropdown>
 
-                    </template>
-                </a-dropdown>
+                    <a-dropdown :popup-max-height="false" trigger="hover">
+                        <a-button type="primary">
+                            <template #icon>
+                                <icon-plus />
+                            </template>
+                            创建题目
+                        </a-button>
+                        <template #content>
+                            <a-doption v-for="item of questionType" @click="createQuestion(item.enumName)"><span
+                                    style="padding: 0 15px;">{{ item.simpleName }}</span></a-doption>
 
-                <a-dropdown :popup-max-height="false" trigger="hover">
-                    <a-button type="primary">
-                        <template #icon>
-                            <icon-plus />
                         </template>
-                        创建题目
+                    </a-dropdown>
+                    <a-button status="success" @click="toBatchImport">
+                        <template #icon>
+                            <icon-upload />
+                        </template>
+                        导入题库
                     </a-button>
-                    <template #content>
-                        <a-doption v-for="item of questionType" @click="createQuestion(item.enumName)"><span
-                                style="padding: 0 15px;">{{ item.simpleName }}</span></a-doption>
-
-                    </template>
-                </a-dropdown>
-                <a-button status="success" @click="toBatchImport">
-                    <template #icon>
-                        <icon-upload />
-                    </template>
-                    导入题库
-                </a-button>
-            </a-button-group>
-            </div>
+                </a-button-group>
+                </div>
+            </RoleAccess>
         </template>
     </a-page-header>
     <div class="question-wrap">
@@ -116,6 +118,8 @@ import { questionListRequest, delQuestionRequest, questionDetailRequest } from '
 import QuestionEditView from '../../components/QuestionEditView.vue';
 import BaseQuestionPreview from '../../components/BaseQuestionPreview.vue';
 import TextEditor from '../../components/TextEditor.vue';
+import RoleAccess from '../../components/RoleAccess.vue';
+
 const props = defineProps({
     selectMode: {
         type: Boolean,

@@ -1,30 +1,34 @@
 <template>
     <a-page-header title="班级列表" @back="$router.back" v-if="!props.selectMode">
-        <template #extra v-if="isTeacher">
-            <a-button type="primary" @click="showAddModal(false)">创建班级</a-button>
+        <template #extra>
+            <RoleAccess required-role="teacher" :require-course-manager="true">
+                <a-button type="primary" @click="showAddModal(false)">创建班级</a-button>
+            </RoleAccess>
         </template>
     </a-page-header>
     <a-table :bordered="false" :columns="columns" v-model:selected-keys="selectKey" @row-click="toUserListPage" :data="list" row-key="id" :row-selection="rowSelection"
         @selection-change="selectChange">
-        <template #edit="{ record }" v-if="isTeacher">
-            <a-button @click.stop="showAddModal(true, record)" style="margin-right: 10px;">
-                <template #icon>
-                    <icon-edit />
-                </template>
-            </a-button>
-            <a-popconfirm content="确认删除班级吗?" @ok="delClass(record.id)">
-                <a-button status="danger" @click.stop style="margin-right: 10px;">
+        <template #edit="{ record }">
+            <RoleAccess required-role="teacher" :require-course-manager="true">
+                <a-button @click.stop="showAddModal(true, record)" style="margin-right: 10px;">
                     <template #icon>
-                        <icon-delete />
+                        <icon-edit />
                     </template>
                 </a-button>
-            </a-popconfirm>
+                <a-popconfirm content="确认删除班级吗?" @ok="delClass(record.id)">
+                    <a-button status="danger" @click.stop style="margin-right: 10px;">
+                        <template #icon>
+                            <icon-delete />
+                        </template>
+                    </a-button>
+                </a-popconfirm>
 
-            <a-button type="primary" @click.stop="getClassCode(record, false)">
-                <template #icon>
-                    <icon-share-alt />
-                </template>
-            </a-button>
+                <a-button type="primary" @click.stop="getClassCode(record, false)">
+                    <template #icon>
+                        <icon-share-alt />
+                    </template>
+                </a-button>
+            </RoleAccess>
         </template>
     </a-table>
     <a-modal simple v-model:visible="addModalVisible" @ok="addClassInfo" :title="isUpdate ? '更新班级' : '创建班级'">
@@ -56,6 +60,9 @@ import { useRoute, useRouter } from 'vue-router';
 import QrcodeVue from 'qrcode.vue'
 import { getClassListRequest, teaAddClassRequest, teaDelClassRequest, teaGetClassCodeRequest } from '../../apis/course-api';
 import useCourseStore from '../../sotre/course-store';
+import useUserStore from '../../sotre/user-store';
+import RoleAccess from '../../components/RoleAccess.vue';
+
 const props = defineProps({
     selectMode: {
         type: Boolean,
@@ -91,7 +98,6 @@ const list = ref([])
 const route = useRoute()
 const router = useRouter()
 const courseStore = useCourseStore()
-const isTeacher = courseStore.isTeacher
 const courseId = route.params['courseId'];
 const classInfo = reactive({
     courseId: 0,
@@ -163,7 +169,8 @@ const columns = [
         slotName: 'name',
     },
 ]
-if (!props.selectMode && isTeacher) {
+const userStore = useUserStore();
+if (!props.selectMode && userStore.isTeacher) {
     columns.push(
         {
             title: '操作',

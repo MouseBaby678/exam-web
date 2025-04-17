@@ -8,7 +8,9 @@
                 <a-radio :value="2">进行中</a-radio>
                 <a-radio :value="3">已完成</a-radio>
             </a-radio-group>
-            <a-button type="primary" v-if="isTeacher" @click="examVisible = true">创建考试</a-button>
+            <RoleAccess required-role="teacher" :require-course-manager="true">
+                <a-button type="primary" @click="examVisible = true">创建考试</a-button>
+            </RoleAccess>
         </template>
     </a-page-header>
     <ul class="exam-list">
@@ -22,24 +24,28 @@
                     <p class="date">{{ item.startTime }} ~ {{ item.endTime }}</p>
                 </div>
             </div>
-            <div class="table-edit" v-if="isTeacher">
-                <a-button status="danger" @click="delExamInfo(item.id)" style="margin-right: 10px;">
-                    <template #icon>
-                        <icon-delete />
-                    </template>
-                </a-button>
-                <a-button type="primary" @click="getExamInfoDetail(item.id)" style="margin-right: 10px;">
-                    <template #icon>
-                        <icon-edit />
-                    </template>
-                </a-button>
-                <router-link :to="`/exam/${item.id}/console/outline`">
-                    <a-button type="primary">
-                        控制台
+            <RoleAccess required-role="teacher" :require-course-manager="true">
+                <div class="table-edit">
+                    <a-button status="danger" @click="delExamInfo(item.id)" style="margin-right: 10px;">
+                        <template #icon>
+                            <icon-delete />
+                        </template>
                     </a-button>
-                </router-link>
-            </div>
-            <ExamInfoButton v-else :item="item"></ExamInfoButton>
+                    <a-button type="primary" @click="getExamInfoDetail(item.id)" style="margin-right: 10px;">
+                        <template #icon>
+                            <icon-edit />
+                        </template>
+                    </a-button>
+                    <router-link :to="`/exam/${item.id}/console/outline`">
+                        <a-button type="primary">
+                            控制台
+                        </a-button>
+                    </router-link>
+                </div>
+            </RoleAccess>
+            <RoleAccess required-role="student">
+                <ExamInfoButton :item="item"></ExamInfoButton>
+            </RoleAccess>
         </li>
     </ul>
     <a-empty v-if="list.length == 0"></a-empty>
@@ -138,12 +144,15 @@ import { updateExamInfoRequest, getExamInfoListRequest, delExamInfoRequest, getE
 import dayjs from 'dayjs'
 import { useRoute } from 'vue-router';
 import useCourseStore from '../../sotre/course-store';
+import useUserStore from '../../sotre/user-store';
 import ExamInfoButton from '../../components/ExamInfoButton.vue'
+import RoleAccess from '../../components/RoleAccess.vue'
 
 const route = useRoute()
 const courseId = route.params['courseId']
 const courseStore = useCourseStore()
-const isTeacher = courseStore.isTeacher
+const userStore = useUserStore()
+const isTeacher = computed(() => userStore.isTeacher)
 
 const examVisible = ref(false)
 const classesVisible = ref(false)

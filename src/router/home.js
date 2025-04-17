@@ -7,13 +7,21 @@ const homes = [
         name:'Home',
         children: [
             {
-                path:"course/:role",
+                path:"",
                 component:MyCourse,
                 name:'MyCourse',
                 meta:{
                     title:'我的课程'
                 }
             },
+            {
+                path:"course/:role",
+                component:MyCourse,
+                name:'MyCourseWithRole',
+                meta:{
+                    title:'我的课程'
+                }
+            }
         ]
     },
 ]

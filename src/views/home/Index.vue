@@ -5,46 +5,30 @@
             <img src="@/assets/img/home-introduce-bg.png"/>
         </div> -->
         <div class="home-function">
-            <!-- 侧边栏 -->
-            <a-menu class="home-list home-list-info" mode="pop" v-model:selected-keys="selectedKeys" show-collapse-button
-                breakpoint="xl">
-                <a-menu-item style="padding:0px" class="collapsed-hidden" v-if="currPage == 'course'">
-                    <div class="course-wrap" v-if="courseStore.courseInfo">
-                        <div class="course-detail">
-                            <a-image fit="cover" width="100%" height="100%" v-loadImg :src="courseStore.courseInfo.cover"
-                                class="cover" />
-                            <p type="text" class="btn">
-                                课程详情
-                                <icon-right-circle style="margin:0" />
-                            </p>
-                            <!-- <span class="name">{{ courseStore.courseInfo.name }}</span> -->
-                        </div>
-                        <h1 class="course-name">{{ courseStore.courseInfo.name }}</h1>
+            <!-- 课程菜单侧边栏 -->
+            <div class="home-menu home-common" v-if="showSidebar">
+                <div class="menu-header">
+                    <div class="logo-icon">
+                        <img src="../../assets/svg/logo.svg" alt="课程" />
                     </div>
-                    <div class="course-wrap" v-else>
-                        <div class="course-detail">
-                            <a-skeleton-shape animation width="100%" height="100%" v-loadImg
-                                :src="courseStore.courseInfo.cover" class="cover" />
-                            <p type="text" class="btn">
-                                课程详情
-                                <icon-right-circle style="margin:0" />
-                            </p>
-                            <!-- <span class="name">{{ courseStore.courseInfo.name }}</span> -->
-                        </div>
-                        <h1 class="course-name">{{ courseStore.courseInfo.name }}</h1>
-                    </div>
-                </a-menu-item>
-                <template v-for="(item, index) in navList" :key="item.key">
-                    <a-menu-item @click="toLink(item)" v-if="item.visble" :key="item.key">
-                        <template #icon v-if="item.icon">
+                    <h2 class="course-title">{{ courseStore.courseInfo.name }}</h2>
+                </div>
+                <a-menu
+                    :default-selected-keys="[menuActiveKey]"
+                    :style="{ width: '100%' }"
+                    @menu-item-click="onMenuItemClick"
+                >
+                    <a-menu-item v-for="item in menuList" :key="item.key" v-show="item.visble">
+                        <template #icon>
                             <component :is="item.icon" />
                         </template>
                         {{ item.name }}
                     </a-menu-item>
-                </template>
-            </a-menu>
-            <!-- 课程 -->
-            <div class="home-content home-common">
+                </a-menu>
+            </div>
+            
+            <!-- 课程内容区域 -->
+            <div class="home-content home-common" :class="{ 'full-width': !showSidebar }">
                 <router-view></router-view>
                 <div class="footer">
                     <p>
@@ -54,125 +38,63 @@
                         <a href="https://gitee.com/baymaxsjj/sqlmock">数据填充由 SqlMock 提供</a>
                     </p>
                 </div>
-
             </div>
         </div>
     </div>
 </template>
 <script setup>
-import { ref, shallowRef, watchEffect } from 'vue';
+import { ref, shallowRef, watchEffect, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useCourseStore from '../../sotre/course-store';
 import useUserStore from '../../sotre/user-store';
-import { IconApps, IconSelectAll, IconStorage, IconBookmark, IconNotification } from "@arco-design/web-vue/es/icon";
-
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const selectedKeys = ref([])
+
+// 检查用户登录状态
 if (!userStore.token) {
     router.push({
         name: "Login"
     })
 }
-const toLink = (item) => {
-    router.push({
-        name: item.key,
-        params: item.params
-    })
-}
-const homeList = [
-    {
-        name: "我的课程",
-        icon: IconApps,
-        key: "MyCourse",
-        params: {
-            role: 'student'
-        },
-        visble: true
-    },
-    {
-        name: "我的作业",
-        icon: IconSelectAll,
-        key: "MyHomeWrok",
-        params: {},
-        visble: true
-    },
-    {
-        name: "我的考试",
-        icon: IconBookmark,
-        key: "MyExams",
-        params: {},
-        visble: true
-    },
-    {
-        name: "我的笔记",
-        icon: IconStorage,
-        key: "MyNotes",
-        params: {},
-        visble: true
-    }, {
-        name: "消息",
-        icon: IconNotification,
-        key: "Message",
-        params: {},
-        visble: true
-    },
-]
-const navList = shallowRef([]);
-const currPage = ref("")
-let path = route.path;
+
 const courseStore = useCourseStore()
-const checkNav = () => {
-    if (path.startsWith("/home")) {
-        currPage.value = 'home'
-        navList.value = homeList;
-    } else if (path.startsWith("/course")) {
-        console.log()
-        currPage.value = 'course'
-        navList.value = courseStore.menu;
-    } else if (path.startsWith("/user")) {
-        navList.value = userStore.menu;
-        currPage.value = 'user'
-    }
-}
-checkNav();
-console.log(route)
+
+// 获取课程ID并加载课程信息
+const courseId = computed(() => route.params.courseId)
 watchEffect(() => {
-    path = route.path;
-    checkNav()
-    selectedKeys.value = [route.name]
+    if (courseId.value) {
+        courseStore.getCourseInfo(courseId.value)
+    }
 })
 
-</script>
-<style lang="less" scoped>
-:deep(.arco-menu .arco-menu-collapse-button) {
-    border-radius: 50%;
-}
+// 侧边栏菜单数据
+const menuList = computed(() => courseStore.menu)
 
-:deep(.arco-page-header) {
-    position: sticky;
-    top: -20px;
-    background-color: var(--color-menu-light-bg);
-    z-index: 1;
-}
+// 仅在课程页面显示侧边栏
+const showSidebar = computed(() => {
+    return route.path.startsWith('/course/') && courseId.value
+})
 
-:deep(.arco-menu) {
-    margin: 0 10px;
-    background-color: var(--color-menu-light-bg);
-    border-radius: 10px;
-    padding: 20px;
-}
+// 根据当前路由设置活动菜单项
+const menuActiveKey = computed(() => {
+    return route.name || ''
+})
 
-:deep(.arco-menu-collapsed) {
-    padding: 0;
-
-    .collapsed-hidden {
-        display: none;
+// 菜单项点击事件
+const onMenuItemClick = (key) => {
+    // 查找对应的菜单项
+    const menuItem = menuList.value.find(item => item.key === key)
+    if (menuItem) {
+        router.push({
+            name: menuItem.key,
+            params: menuItem.params
+        })
     }
 }
-
+</script>
+<style lang="less" scoped>
 .home-wrap {
     padding-top: 72px;
     box-sizing: border-box;
@@ -207,63 +129,120 @@ watchEffect(() => {
         overflow: hidden;
     }
 
-    .home-list {
-        max-width: 200px;
-        transition: width .2s;
-        height: 100%;
-        box-sizing: border-box;
-
-        .course-wrap {
-            .course-detail {
-                height: 80px;
-                position: relative;
-                overflow: hidden;
-
-                .cover {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                }
-
-                .btn {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    color: #fff;
-                    background-color: rgba(0, 0, 0, .2);
-                    height: 25px;
-                    line-height: 25px;
-                    font-size: 12px;
+    .home-menu {
+        width: 220px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        padding: 0; /* 移除内边距，由菜单组件控制 */
+        
+        .menu-header {
+            padding: 20px 15px;
+            border-bottom: 1px solid var(--color-border-2);
+            margin-bottom: 15px;
+            text-align: center; /* 居中标题 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            
+            .logo-icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background-color: var(--color-primary-light-1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 12px;
+                box-shadow: 0 4px 8px rgba(var(--primary-6), 0.15);
+                
+                img {
+                    width: 30px;
+                    height: 30px;
                 }
             }
-
-            .course-name {
+            
+            .course-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: var(--color-text-1);
+                margin: 0;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                word-wrap: normal;
+                white-space: nowrap;
+                max-width: 100%;
+                padding: 0 5px;
+                line-height: 1.5;
             }
-        }
-
-
-        .home-list-info {
-            overflow-y: auto;
         }
     }
 
     .home-content {
         overflow-y: auto;
-        width: 100%;
-        margin-left: 0;
+        width: calc(100% - 240px);
+        margin-left: 10px; /* 添加左边距，增加间隔 */
+        
+        &.full-width {
+            width: 100%;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
     }
-    .footer{
-        text-align: center;color:var(--color-text-3);font-size: 16px;
+    
+    .footer {
+        text-align: center;
+        color: var(--color-text-3);
+        font-size: 16px;
         padding: 10px;
     }
+}
 
-}</style>
+:deep(.arco-page-header) {
+    position: sticky;
+    top: -20px;
+    background-color: var(--color-menu-light-bg);
+    z-index: 1;
+}
+
+:deep(.arco-menu) {
+    background-color: var(--color-menu-light-bg);
+    border-radius: 10px;
+    padding: 10px;
+    
+    .arco-menu-item {
+        font-size: 16px;
+        font-weight: 500;
+        height: 50px;
+        line-height: 50px;
+        margin: 4px 0;
+        border-radius: 6px; /* 圆角菜单项 */
+        transition: all 0.3s;
+        
+        .arco-icon {
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        
+        &:hover {
+            background-color: var(--color-fill-2);
+        }
+    }
+    
+    .arco-menu-selected {
+        font-weight: 600;
+        background-color: var(--color-primary-light-1) !important;
+        color: var(--color-primary-6) !important;
+    }
+}
+
+:deep(.arco-menu-collapsed) {
+    padding: 0;
+    
+    .collapsed-hidden {
+        display: none;
+    }
+    
+    .arco-menu-item {
+        padding: 0 24px;
+    }
+}
+</style>

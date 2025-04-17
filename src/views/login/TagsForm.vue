@@ -201,10 +201,7 @@ const submit=()=>{
         Message.success("登录成功")
         loading.value=false;
         router.push({
-          name:"MyCourse",
-          params:{
-            role:"student"
-          }
+          name:"MyCourse"
         })
       })
       userStore.getBaseUserInfo()
