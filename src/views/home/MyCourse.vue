@@ -36,9 +36,7 @@
                         <div  class="course-item">
                         <div class="course-picture">
                             <a-image width="100%" style="object-fit: cover;" height="100%" :src="getImageUrl(item.cover)"  show-loader/>
-                            <div class="course-opera">
-                                <span @click.stop="showAddModal(2,item)">退课</span>
-                            </div>
+                            <!-- 退课按钮已移除 -->
                         </div>
                         <div class="course-info">
                             <h3 class="title">{{ item.name }}</h3>
@@ -123,7 +121,7 @@ const courseStore = useCourseStore()
 const userStore = useUserStore() // 获取用户存储实例
 
 const modalTitle = ref('添加课程');
-//0 加入、2：修改
+//0 加入
 const modalType = ref(0);
 const addModalVisible = ref(false)
 const stuAddInfo = reactive({
@@ -168,10 +166,6 @@ const showAddModal = (type, data) => {
         modalTitle.value = "添加课程"
         modalType.value = 0
         stuAddInfo.code = ""
-    } else if (type == 2) {
-        modalTitle.value = "退出课程"
-        modalType.value = 2
-        // 可以添加退课逻辑
     }
     addModalVisible.value = !addModalVisible.value
 }
@@ -196,8 +190,6 @@ const courseOk = () => {
         stuAddCourseRequest(stuAddInfo.code).then(() => {
             getCourseList()
         })
-    } else if (modalType.value == 2) {
-        // 这里可以添加退课逻辑
     }
 }
 
@@ -382,50 +374,15 @@ getCourseList()
             &:hover {
                 box-shadow:0 0 20px rgba(0, 0, 0, 0.1);
                 .course-picture {
-                    .course-opera {
-                        height: 100%;
-                    }
                     img{
                         transform: scale(1.05);
-                        filter: blur(2px);
                     }
                 }
-
             }
 
             .course-picture {
                 height: 160px;
                 position: relative;
-                .course-opera {
-                    position: absolute;
-                    top: 0px;
-                    right: 0px;
-                    height: 0;
-                    left: 0;
-                    bottom: 0;
-                    overflow: hidden;
-                    transition: height .3s;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    box-sizing: border-box;
-                    span{
-                        font-size: 14px;
-                        display: inline-block;
-                        height: 50px;
-                        width: 50px;
-                        text-align: center;
-                        line-height: 50px;
-                        border-radius: 30px;
-                        color: var(--color-text-1);
-                        background-color: var(--color-bg-1);
-                        font-weight: bold;
-                        margin: 0 5px;
-                        &:hover{
-                            background-color: var(--color-fill-2);
-                        }
-                    }
-                }
             }
             .course-info{
                 padding: 10px;
