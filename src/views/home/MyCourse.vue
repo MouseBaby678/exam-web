@@ -61,10 +61,10 @@
         <!-- 创建课程模态框 -->
         <a-modal simple v-model:visible="createCourseModalVisible" @ok="createCourse" title="创建课程">
             <a-form :model="courseCreateInfo">
-                <a-form-item field="name" label="课程名称" :rules="[{ required: true, message: '请输入课程名称' }]">
+                <a-form-item field="name" label="课程名称" label-col-flex="80px" :rules="[{ required: true, message: '请输入课程名称' }]">
                     <a-input v-model="courseCreateInfo.name" placeholder="输入课程名称" />
                 </a-form-item>
-                <a-form-item field="cover" label="课程封面" :rules="[{ required: true, message: '请上传课程封面' }]">
+                <a-form-item field="cover" label="课程封面" label-col-flex="80px" :rules="[{ required: true, message: '请上传课程封面' }]">
                     <div class="cover-upload">
                         <div class="cover-actions">
                             <a-upload
@@ -106,10 +106,10 @@
                         </a-upload>
                     </div>
                 </a-form-item>
-                <a-form-item field="introduce" label="课程介绍">
+                <a-form-item field="introduce" label="课程介绍" label-col-flex="80px">
                     <a-textarea v-model="courseCreateInfo.introduce" placeholder="输入课程介绍" />
                 </a-form-item>
-                <a-form-item field="isPublic" label="课程可见性">
+                <a-form-item field="isPublic" label="课程可见性" label-col-flex="80px">
                     <a-radio-group v-model="courseCreateInfo.isPublic">
                         <a-radio value="0">不公开 (仅邀请码访问)</a-radio>
                         <a-radio value="1">公开 (可搜索)</a-radio>
