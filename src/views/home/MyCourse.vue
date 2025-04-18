@@ -66,6 +66,25 @@
                 </a-form-item>
                 <a-form-item field="cover" label="课程封面" :rules="[{ required: true, message: '请上传课程封面' }]">
                     <div class="cover-upload">
+                        <div class="cover-actions">
+                            <a-upload
+                                :custom-request="customUploadCover"
+                                :file-list="fileList"
+                                :show-file-list="false"
+                                :show-upload-button="true"
+                            >
+                                <template #upload-button>
+                                    <a-button type="outline">
+                                        <template #icon><icon-upload /></template>
+                                        上传封面
+                                    </a-button>
+                                </template>
+                            </a-upload>
+                            <a-button type="outline" @click="generateCover" :loading="generatingCover" :disabled="!courseCreateInfo.name">
+                                <template #icon><icon-image /></template>
+                                自动生成封面
+                            </a-button>
+                        </div>
                         <a-upload
                             :custom-request="customUploadCover"
                             :file-list="fileList"
@@ -76,10 +95,7 @@
                                 <div class="cover-upload-area">
                                     <div v-if="fileList.length > 0" class="cover-preview">
                                         <img :src="getImageUrl(fileList[0].url)" alt="课程封面预览" />
-                                        <div class="cover-preview-mask">
-                                            <icon-camera />
-                                            <p>点击更换封面</p>
-                                        </div>
+
                                     </div>
                                     <div v-else class="upload-placeholder">
                                         <icon-upload />
@@ -111,12 +127,12 @@
 import { reactive, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { courseListRequest, stuAddCourseRequest, teaCreateCourseRequest } from '@/apis/course-api.js'
-import { uploadCourseCover } from '@/apis/file-api.js'
+import { uploadCourseCover, generateCourseCover } from '@/apis/file-api.js'
 import useCourseStore from '../../sotre/course-store';
 import useUserStore from '../../sotre/user-store'; // 导入用户存储
 import { getImageUrl, imageUploadHandle } from '../../utils/image'
 import { Message } from '@arco-design/web-vue'; // 导入消息组件
-import { IconEdit, IconUpload, IconCamera } from '@arco-design/web-vue/es/icon'; // 导入图标组件
+import { IconEdit, IconUpload, IconCamera, IconImage } from '@arco-design/web-vue/es/icon'; // 导入图标组件
 
 const route = useRoute()
 const router = useRouter()
@@ -126,6 +142,9 @@ const userStore = useUserStore() // 获取用户存储实例
 // 图片预览相关
 const previewVisible = ref(false)
 const previewSrcList = ref([])
+
+// 自动生成封面标志
+const generatingCover = ref(false)
 
 const modalTitle = ref('添加课程');
 //0 加入
@@ -230,6 +249,45 @@ const customUploadCover = (options) => {
     });
 };
 
+// 生成课程封面
+const generateCover = () => {
+    if (!courseCreateInfo.name) {
+        Message.warning('请先输入课程名称');
+        return;
+    }
+    
+    generatingCover.value = true;
+    
+    generateCourseCover(courseCreateInfo.name)
+        .then(({ data }) => {
+            if (data.code === '00001') {
+                const path = data.data;
+                // 更新文件列表用于预览
+                fileList.value = [{
+                    uid: new Date().getTime(),
+                    name: 'auto-generated-cover.jpg',
+                    url: path
+                }];
+                // 更新表单数据
+                courseCreateInfo.cover = path;
+                Message.success('封面生成成功');
+            } else {
+                Message.error('封面生成失败: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('封面生成失败:', err);
+            if (err.response && err.response.status === 404) {
+                Message.error('封面生成功能尚未实现，请联系管理员开启此功能');
+            } else {
+                Message.error('封面生成失败: ' + (err.message || '未知错误'));
+            }
+        })
+        .finally(() => {
+            generatingCover.value = false;
+        });
+};
+
 // 创建课程处理
 const createCourse = () => {
     if (!courseCreateInfo.name) {
@@ -284,53 +342,43 @@ getCourseList()
         width: 100%;
         margin-bottom: 10px;
 
+        .cover-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .cover-upload-area {
             width: 100%;
             cursor: pointer;
             
             .cover-preview {
                 width: 100%;
-                height: 200px;
+                max-width: 300px;
+                height: 150px;
+                margin: 0 auto;
                 position: relative;
                 overflow: hidden;
                 border-radius: 8px;
                 border: 1px solid var(--color-border-2);
+                padding: 5px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 
                 img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                 }
-                
-                .cover-preview-mask {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.4);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    opacity: 0;
-                    transition: opacity 0.3s;
-                    color: white;
-                    
-                    &:hover {
-                        opacity: 1;
-                    }
-                    
-                    .icon {
-                        font-size: 24px;
-                        margin-bottom: 8px;
-                    }
-                }
             }
             
             .upload-placeholder {
                 width: 100%;
-                height: 200px;
+                max-width: 300px;
+                height: 150px;
+                margin: 0 auto;
                 border: 1px dashed var(--color-border-2);
                 border-radius: 8px;
                 display: flex;

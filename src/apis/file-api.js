@@ -5,3 +5,8 @@ export const uploadAvatar=(image,config)=>{
 export const uploadCourseCover=(image,config)=>{
     return axios.post(`/uapi/courses/upload-cover`,image,config)
 }
+
+// 生成课程封面API
+export const generateCourseCover=(courseName)=>{
+    return axios.post(`/uapi/courses/generate-cover`, { courseName })
+}
