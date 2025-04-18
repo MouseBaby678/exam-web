@@ -10,7 +10,7 @@
                 <!-- 导航区 -->
                 <ul class="header-nav">
                     <li>
-                        <router-link :to="'/course/' + (userStore.isTeacher ? 'teacher' : 'student')">
+                        <router-link :to="{name: 'CourseCenterRole', params: {role: userStore.isTeacher ? 'teacher' : 'student'}}">
                             课程中心
                         </router-link>
                     </li>

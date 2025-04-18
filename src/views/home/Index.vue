@@ -74,7 +74,8 @@ const menuList = computed(() => courseStore.menu)
 
 // 仅在课程页面显示侧边栏
 const showSidebar = computed(() => {
-    return route.path.startsWith('/course/') && courseId.value
+    // 确保是课程详情页面，且courseId是数字
+    return route.path.startsWith('/course/') && courseId.value && !isNaN(courseId.value) && route.name !== 'CourseCenter' && route.name !== 'CourseCenterRole'
 })
 
 // 根据当前路由设置活动菜单项
