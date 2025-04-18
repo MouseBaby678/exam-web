@@ -66,8 +66,41 @@
                 <a-form-item field="name" label="课程名称" :rules="[{ required: true, message: '请输入课程名称' }]">
                     <a-input v-model="courseCreateInfo.name" placeholder="输入课程名称" />
                 </a-form-item>
+                <a-form-item field="cover" label="课程封面" :rules="[{ required: true, message: '请上传课程封面' }]">
+                    <div class="cover-upload">
+                        <a-upload
+                            :custom-request="customUploadCover"
+                            :file-list="fileList"
+                            :show-file-list="false"
+                            :show-upload-button="true"
+                        >
+                            <template #upload-button>
+                                <div class="cover-upload-area">
+                                    <div v-if="fileList.length > 0" class="cover-preview">
+                                        <img :src="getImageUrl(fileList[0].url)" alt="课程封面预览" />
+                                        <div class="cover-preview-mask">
+                                            <icon-camera />
+                                            <p>点击更换封面</p>
+                                        </div>
+                                    </div>
+                                    <div v-else class="upload-placeholder">
+                                        <icon-upload />
+                                        <p>点击上传课程封面</p>
+                                        <p class="upload-tip">建议尺寸: 800x400 像素</p>
+                                    </div>
+                                </div>
+                            </template>
+                        </a-upload>
+                    </div>
+                </a-form-item>
                 <a-form-item field="introduce" label="课程介绍">
                     <a-textarea v-model="courseCreateInfo.introduce" placeholder="输入课程介绍" />
+                </a-form-item>
+                <a-form-item field="isPublic" label="课程可见性">
+                    <a-radio-group v-model="courseCreateInfo.isPublic">
+                        <a-radio value="0">不公开 (仅邀请码访问)</a-radio>
+                        <a-radio value="1">公开 (可搜索)</a-radio>
+                    </a-radio-group>
                 </a-form-item>
             </a-form>
         </a-modal>
@@ -77,10 +110,12 @@
 import { reactive, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { courseListRequest, stuAddCourseRequest, teaCreateCourseRequest } from '@/apis/course-api.js'
+import { uploadCourseCover } from '@/apis/file-api.js'
 import useCourseStore from '../../sotre/course-store';
 import useUserStore from '../../sotre/user-store'; // 导入用户存储
-import { getImageUrl } from '../../utils/image'
+import { getImageUrl, imageUploadHandle } from '../../utils/image'
 import { Message } from '@arco-design/web-vue'; // 导入消息组件
+import { IconEdit, IconUpload, IconCamera } from '@arco-design/web-vue/es/icon'; // 导入图标组件
 
 const route = useRoute()
 const router = useRouter()
@@ -99,8 +134,13 @@ const stuAddInfo = reactive({
 const createCourseModalVisible = ref(false);
 const courseCreateInfo = reactive({
     name: "",
-    introduce: ""
+    introduce: "",
+    isPublic: "0",
+    cover: ""
 });
+
+// 封面上传相关
+const fileList = ref([]);
 
 // 根据用户实际角色动态设置
 const role = computed(() => {
@@ -171,12 +211,25 @@ const toCourse = (data) => {
     })
 }
 
-// 显示创建课程模态框
-const showCreateCourseModal = () => {
-    courseCreateInfo.name = "";
-    courseCreateInfo.introduce = "";
-    createCourseModalVisible.value = true;
-}
+// 自定义上传函数
+const customUploadCover = (options) => {
+    return imageUploadHandle(options, uploadCourseCover, (res) => {
+        if (res.data.code === '00001') { // 文件上传成功的特殊响应码
+            const path = res.data.data;
+            // 更新文件列表用于预览
+            fileList.value = [{
+                uid: new Date().getTime(),
+                name: 'course-cover.jpg',
+                url: path
+            }];
+            // 更新表单数据
+            courseCreateInfo.cover = path;
+            Message.success('封面上传成功');
+        } else {
+            Message.error('封面上传失败: ' + res.data.message);
+        }
+    });
+};
 
 // 创建课程处理
 const createCourse = () => {
@@ -185,13 +238,34 @@ const createCourse = () => {
         return;
     }
     
+    if (fileList.value.length === 0 || !courseCreateInfo.cover) {
+        Message.error('请上传课程封面');
+        return;
+    }
+    
     teaCreateCourseRequest(courseCreateInfo).then(() => {
         Message.success('课程创建成功');
         createCourseModalVisible.value = false;
         getCourseList(); // 刷新课程列表
+        // 重置表单
+        courseCreateInfo.name = '';
+        courseCreateInfo.introduce = '';
+        courseCreateInfo.isPublic = '0';
+        courseCreateInfo.cover = '';
+        fileList.value = [];
     }).catch(err => {
         Message.error('课程创建失败：' + (err.message || '未知错误'));
     });
+}
+
+// 显示创建课程模态框
+const showCreateCourseModal = () => {
+    courseCreateInfo.name = "";
+    courseCreateInfo.introduce = "";
+    courseCreateInfo.isPublic = "0";
+    courseCreateInfo.cover = "";
+    fileList.value = [];
+    createCourseModalVisible.value = true;
 }
 
 // 页面加载时获取课程列表
@@ -204,6 +278,88 @@ getCourseList()
         display: flex;
         justify-content: space-between;
         padding-bottom: 20px;
+    }
+
+    // 添加封面上传区域样式
+    .cover-upload {
+        width: 100%;
+        margin-bottom: 10px;
+
+        .cover-upload-area {
+            width: 100%;
+            cursor: pointer;
+            
+            .cover-preview {
+                width: 100%;
+                height: 200px;
+                position: relative;
+                overflow: hidden;
+                border-radius: 8px;
+                border: 1px solid var(--color-border-2);
+                
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                
+                .cover-preview-mask {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.4);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                    color: white;
+                    
+                    &:hover {
+                        opacity: 1;
+                    }
+                    
+                    .icon {
+                        font-size: 24px;
+                        margin-bottom: 8px;
+                    }
+                }
+            }
+            
+            .upload-placeholder {
+                width: 100%;
+                height: 200px;
+                border: 1px dashed var(--color-border-2);
+                border-radius: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: var(--color-text-3);
+                background-color: var(--color-fill-2);
+                transition: all 0.3s;
+                
+                &:hover {
+                    border-color: var(--color-primary-light-3);
+                    color: var(--color-primary);
+                    background-color: var(--color-fill-1);
+                }
+                
+                .icon {
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+                
+                .upload-tip {
+                    font-size: 12px;
+                    margin-top: 8px;
+                    color: var(--color-text-3);
+                }
+            }
+        }
     }
 
     .course-list {
