@@ -10,18 +10,8 @@
                 <!-- 导航区 -->
                 <ul class="header-nav">
                     <li>
-                        <router-link to="/home">
-                            首页
-                        </router-link>
-                    </li>
-                    <li>
-                        <router-link to="/home/course/student">
+                        <router-link :to="'/course/' + (userStore.isTeacher ? 'teacher' : 'student')">
                             课程中心
-                        </router-link>
-                    </li>
-                    <li>
-                        <router-link to="/home">
-                            题库查询
                         </router-link>
                     </li>
                 </ul>

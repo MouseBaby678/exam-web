@@ -201,7 +201,10 @@ const submit=()=>{
         Message.success("登录成功")
         loading.value=false;
         router.push({
-          name:"MyCourse"
+          name:"CourseCenterRole",
+          params: {
+            role: userStore.isTeacher ? 'teacher' : 'student'
+          }
         })
       })
       userStore.getBaseUserInfo()
