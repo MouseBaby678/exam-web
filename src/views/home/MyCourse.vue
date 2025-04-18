@@ -94,8 +94,7 @@
                             <template #upload-button>
                                 <div class="cover-upload-area">
                                     <div v-if="fileList.length > 0" class="cover-preview">
-                                        <img :src="getImageUrl(fileList[0].url)" alt="课程封面预览" />
-
+                                        <img :src="getImageUrl(fileList[0].url)" alt="课程封面预览" style="width:300px; object-fit:cover;" />
                                     </div>
                                     <div v-else class="upload-placeholder">
                                         <icon-upload />
@@ -366,12 +365,6 @@ getCourseList()
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                
-                img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
             }
             
             .upload-placeholder {
