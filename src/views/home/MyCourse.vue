@@ -35,7 +35,7 @@
                     <!-- <router-link :to="'/course/'+item.id"> -->
                         <div  class="course-item">
                         <div class="course-picture">
-                            <a-image width="100%" style="object-fit: cover;" height="100%" :src="getImageUrl(item.cover)"  show-loader/>
+                            <img width="100%" style="object-fit: cover;" height="100%" :src="getImageUrl(item.cover)" />
                             <!-- 退课按钮已移除 -->
                         </div>
                         <div class="course-info">
@@ -102,6 +102,9 @@
                 </a-form-item>
             </a-form>
         </a-modal>
+        
+        <!-- 添加图片预览组件 -->
+        <a-image-preview-group v-model:visible="previewVisible" :srcList="previewSrcList" />
     </div>
 </template>
 <script setup>
@@ -119,6 +122,10 @@ const route = useRoute()
 const router = useRouter()
 const courseStore = useCourseStore()
 const userStore = useUserStore() // 获取用户存储实例
+
+// 图片预览相关
+const previewVisible = ref(false)
+const previewSrcList = ref([])
 
 const modalTitle = ref('添加课程');
 //0 加入
