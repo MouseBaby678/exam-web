@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import courses from "./course";
-import homes from "./home";
 import exams from './exam'
 import users from './users'
 import useUserStore from '../sotre/user-store'
@@ -9,6 +8,8 @@ import { Message } from '@arco-design/web-vue'
 const base = import.meta.env.VITE_BASE;
 const Empty = () => import("../components/Empty.vue");
 const Login = () => import("../views/login/Index.vue");
+const MyCourse = () => import("../views/home/MyCourse.vue");
+const Home = () => import("../views/home/Index.vue");
 
 const routes = [
   {
@@ -25,7 +26,38 @@ const routes = [
       header: false,
     },
   },
-  ...homes,
+  // 直接访问课程中心路径
+  {
+    path: '/course/:role',
+    component: Home,
+    name: 'CourseCenter',
+    children: [
+      {
+        path: "",
+        component: MyCourse,
+        name: 'CourseCenterRole',
+        meta: {
+          title: '我的课程'
+        }
+      }
+    ]
+  },
+  // 根路径
+  {
+    path: '/',
+    name: 'Root',
+    component: Home,
+    children: [
+      {
+        path: "",
+        component: MyCourse,
+        name: 'RootPage',
+        meta: {
+          title: '我的课程'
+        }
+      }
+    ]
+  },
   ...courses,
   ...exams,
   ...users
@@ -49,6 +81,18 @@ const teacherAuthPaths = [
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
+  
+  // 根路径重定向逻辑
+  if (to.name === 'Root' || to.name === 'RootPage') {
+    if (!userStore.isLogin) {
+      next({ name: 'Login' });
+      return;
+    } else {
+      const role = userStore.isTeacher ? 'teacher' : 'student';
+      next({ name: 'CourseCenterRole', params: { role } });
+      return;
+    }
+  }
   
   // 检查是否需要教师权限
   const needsTeacherAuth = teacherAuthPaths.some(path => {
