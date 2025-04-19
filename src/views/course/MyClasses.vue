@@ -39,6 +39,13 @@
     <a-modal body-class="share-code" modal-class="share-code-modal" :modal-style="{ overflow: 'hidden', width: 'auto' }"
         simple v-model:visible="codeModalVisible" @ok="addClassInfo" :header="false" :footer="false">
         <a-spin dot :loading="codeLoading">
+            <div class="close-button">
+                <a-button type="text" @click="codeModalVisible = false" size="large">
+                    <template #icon>
+                        <icon-close />
+                    </template>
+                </a-button>
+            </div>
             <div class="course-info">
                 <h1>课程：{{ courseStore.courseInfo.name }}</h1>
                 <p>老师：{{ courseStore.courseInfo.teacher.nickname }}</p>
@@ -50,7 +57,7 @@
                 <p class="class-code-expiry">失效时间:{{ classCode.expirationTime }}</p>
             </div>
 
-            <a-button type="primary" size="large" shape="round" long>分享班级码</a-button>
+            <a-button type="primary" size="large" shape="round" long @click="copyClassCode">复制班级码</a-button>
         </a-spin>
     </a-modal>
 </template>
@@ -62,6 +69,8 @@ import { getClassListRequest, teaAddClassRequest, teaDelClassRequest, teaGetClas
 import useCourseStore from '../../sotre/course-store';
 import useUserStore from '../../sotre/user-store';
 import RoleAccess from '../../components/RoleAccess.vue';
+import { Message } from '@arco-design/web-vue';
+import { IconClose } from '@arco-design/web-vue/es/icon';
 
 const props = defineProps({
     selectMode: {
@@ -137,6 +146,15 @@ const delClass = (id) => {
     teaDelClassRequest(id).then(() => {
         getList();
     })
+}
+const copyClassCode = () => {
+    navigator.clipboard.writeText(classCode.code).then(() => {
+        // 使用Arco Design的Message组件显示复制成功的提示
+        Message.success('班级码已复制到剪贴板');
+    }).catch(err => {
+        console.error('复制失败: ', err);
+        Message.error('复制失败，请手动复制');
+    });
 }
 const getClassCode = (data, anew) => {
     codeModalVisible.value = true
@@ -275,7 +293,24 @@ if (!props.selectMode && userStore.isTeacher) {
         flex-direction: column;
         align-items: center;
         padding: 20px 40px !important;
+        position: relative;
 
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 1;
+            
+            .arco-btn {
+                font-size: 20px;
+                height: 36px;
+                width: 36px;
+            }
+            
+            .arco-icon {
+                font-size: 24px;
+            }
+        }
 
         .course-info {
             margin-bottom: 10px;
