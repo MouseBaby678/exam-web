@@ -30,14 +30,6 @@
             <!-- 课程内容区域 -->
             <div class="home-content home-common" :class="{ 'full-width': !showSidebar }">
                 <router-view></router-view>
-                <div class="footer">
-                    <p>
-                        <a href="https://gitee.com/baymaxsjj">&copy; 2022 Baymax 版权所有<br /></a>
-                    </p>
-                    <p style="font-size:12px;margin:5px 0;">
-                        <a href="https://gitee.com/baymaxsjj/sqlmock">数据填充由 SqlMock 提供</a>
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -187,13 +179,6 @@ const onMenuItemClick = (key) => {
             margin: 0 auto;
             max-width: 1200px;
         }
-    }
-    
-    .footer {
-        text-align: center;
-        color: var(--color-text-3);
-        font-size: 16px;
-        padding: 10px;
     }
 }
 

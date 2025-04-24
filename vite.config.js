@@ -25,7 +25,7 @@ export default ({ mode })=>{
       // svgLoader(),
       //按需加载
       vitePluginForArco({
-        theme:'@arco-themes/vue-mgo-blog',
+        theme:'@arco-themes/vue-gi-demo',
         style: 'css',
         // iconPrefix:'icon'
       }),
@@ -80,7 +80,7 @@ export default ({ mode })=>{
       conditions: [],
       // 导入时想要省略的扩展名列表
       // 不建议使用 .vue 影响IDE和类型支持
-      extensions:['.mjs','.js','.ts','.jsx','.tsx','.json']  
+      extensions:['.mjs','.js','.ts','.jsx','.tsx','.json']
      },
   })
 }
