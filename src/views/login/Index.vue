@@ -1,7 +1,7 @@
 <template>
     <router-link to="/" class="header-logo">
         <img class="logo" src="../../assets/svg/logo.svg" />
-        <h1 class="name">为考</h1>
+        <h1 class="name">智考</h1>
     </router-link>
     <div class="login">
         <div class="login-wrap">

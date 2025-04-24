@@ -1,5 +1,3 @@
-
-
 <template>
   <header-nav v-if="headerVisible"></header-nav>
   <router-view></router-view>
@@ -43,7 +41,7 @@ watch(() => route.name, () => {
   if (title != undefined) {
     title = "-" + title;
   }
-  document.title = "为考" + (title ?? "")
+  document.title = "智考" + (title ?? "")
 
 })
 </script>

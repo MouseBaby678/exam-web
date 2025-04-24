@@ -231,7 +231,7 @@ if (!props.selectMode && userStore.isTeacher) {
     width: auto !important;
 
     &::after {
-        content: "为考";
+        content: "智考";
         position: absolute;
         top: 0px;
         right: 50px;

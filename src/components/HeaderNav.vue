@@ -5,7 +5,7 @@
             <div style="height: 100%;display:flex;">
                 <router-link to="/" class="header-logo">
                     <img src="../assets/svg/logo.svg" style="height: 30px;"/>
-                    <h1 class="name">为考</h1>
+                    <h1 class="name">智考</h1>
                 </router-link>
                 <!-- 导航区 -->
                 <ul class="header-nav">
