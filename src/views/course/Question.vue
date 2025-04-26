@@ -23,11 +23,10 @@
                             批量操作
                         </a-button>
                         <template #content>
-                            <a-doption><span style="padding: 0 15px;">批量删除</span></a-doption>
-                            <a-doption><span style="padding: 0 15px;">（公开）</span></a-doption>
-                            <a-doption><span style="padding: 0 15px;">（课程）</span></a-doption>
-                            <a-doption><span style="padding: 0 15px;">（自己）</span></a-doption>
-
+                            <a-doption @click="batchDelete"><span style="padding: 0 15px;">批量删除</span></a-doption>
+                            <a-doption @click="batchUpdateVisibility('overt')"><span style="padding: 0 15px;">设为公开</span></a-doption>
+                            <a-doption @click="batchUpdateVisibility('course')"><span style="padding: 0 15px;">课程可见</span></a-doption>
+                            <a-doption @click="batchUpdateVisibility('self')"><span style="padding: 0 15px;">仅自己可见</span></a-doption>
                         </template>
                     </a-dropdown>
 
@@ -114,11 +113,18 @@ import { reactive, ref, watch } from 'vue';
 import useCourseStore from '../../sotre/course-store';
 import QuestionTagTree from '../../components/QuestionTagTree.vue';
 import { questionType, getQuestionType, getQuestionVisble } from '../../utils/question-config.js'
-import { questionListRequest, delQuestionRequest, questionDetailRequest } from '../../apis/question-api';
+import { 
+    questionListRequest, 
+    delQuestionRequest, 
+    questionDetailRequest, 
+    batchDeleteQuestionRequest,
+    batchUpdateVisibilityRequest
+} from '../../apis/question-api';
 import QuestionEditView from '../../components/QuestionEditView.vue';
 import BaseQuestionPreview from '../../components/BaseQuestionPreview.vue';
 import TextEditor from '../../components/TextEditor.vue';
 import RoleAccess from '../../components/RoleAccess.vue';
+import { Message, Modal } from '@arco-design/web-vue';
 
 const props = defineProps({
     selectMode: {
@@ -272,6 +278,75 @@ if (!props.selectMode) {
         slotName: 'edit'
     },)
 }
+
+// 批量删除题目
+const batchDelete = () => {
+    if (selectedKeys.value.length === 0) {
+        Message.warning('请先选择要操作的题目');
+        return;
+    }
+
+    Modal.confirm({
+        title: '批量删除题目',
+        content: `确定要删除选中的 ${selectedKeys.value.length} 个题目吗？此操作不可恢复！`,
+        okText: '确认删除',
+        cancelText: '取消',
+        onOk: () => {
+            loading.value = true;
+            batchDeleteQuestionRequest(selectedKeys.value).then(res => {
+                console.log(res)
+                if (res.data.code === '00001') {
+                    selectedKeys.value = [];
+                    getQuestList();
+                } else {
+                    Message.error(`删除失败: ${res.data.msg || '未知错误'}`);
+                }
+            }).catch(err => {
+                console.error('批量删除出错:', err);
+                Message.error(`操作异常: ${err.message || '未知错误'}`);
+            }).finally(() => {
+                loading.value = false;
+            });
+        }
+    });
+};
+
+// 批量更新题目可见性
+const batchUpdateVisibility = (visibility) => {
+    if (selectedKeys.value.length === 0) {
+        Message.warning('请先选择要操作的题目');
+        return;
+    }
+
+    const visibilityName = {
+        'overt': '公开',
+        'course': '课程可见',
+        'self': '仅自己可见'
+    }[visibility];
+
+    Modal.confirm({
+        title: '批量修改可见性',
+        content: `确定将选中的 ${selectedKeys.value.length} 个题目设置为"${visibilityName}"吗？`,
+        okText: '确认',
+        cancelText: '取消',
+        onOk: () => {
+            loading.value = true;
+            batchUpdateVisibilityRequest(selectedKeys.value, visibility).then(res => {
+                if (res.data.code === '00001') {
+                    selectedKeys.value = [];
+                    getQuestList();
+                } else {
+                    Message.error(`操作失败: ${res.data.msg || '未知错误'}`);
+                }
+            }).catch(err => {
+                console.error('批量更新可见性出错:', err);
+                Message.error(`操作异常: ${err.message || '未知错误'}`);
+            }).finally(() => {
+                loading.value = false;
+            });
+        }
+    });
+};
 </script>
 <style lang="less" scoped>
 :deep(.arco-rate-character) {

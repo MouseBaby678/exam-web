@@ -44,11 +44,11 @@ export const batchQuestionRequest=(courseId,tagId,questionInfos,questionConfig=n
     })
 }
 // 解析题目文本
-export const parseQuestionTextRequest=(questionsText,defaultRule=null,customRule=null)=>{
+export const parseQuestionTextRequest=(questionsText)=>{
     return axios.post(`/eapi/question/analyze`,{
         questionsText,
-        defaultRule,
-        customRule
+        defaultRule: 'CHAOXING',
+        customRule: null
     })
 }
 // 更新题目项
@@ -62,4 +62,17 @@ export const delQuestionItemRequest=(itemId)=>{
 // 修改/单/多/判 答案
 export const updateQuestionCorrectRequest=(itemId)=>{
     return axios.post(`/eapi/question-item/correct/${itemId}`)
+}
+// 批量删除题目
+export const batchDeleteQuestionRequest=(questionIds)=>{
+    return axios.post(`/eapi/question/batchDelete`, {
+        questionIds
+    })
+}
+// 批量更新题目可见性
+export const batchUpdateVisibilityRequest=(questionIds, visibility)=>{
+    return axios.post(`/eapi/question/batchUpdateVisibility`, {
+        questionIds,
+        visibility
+    })
 }
