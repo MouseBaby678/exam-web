@@ -32,7 +32,7 @@
 
             <div class="common-style">
                 <a-countdown ref="countDownRef" :value="dayjs(examInfo.endTime).valueOf()"
-                    :start="examInfo.endTime != null" :now="Date.now()" format="HH:mm:ss">
+                    :start="examInfo.endTime != null" :now="Date.now()" format="HH:mm:ss" @finish="countDownFinish">
                     <template #title>
                         <h1>{{ examInfo.title ?? "loading" }}</h1>
                     </template>
@@ -155,7 +155,6 @@ const getExamQuestion = computed(() => {
     }
 })
 
-
 examStartRequest(examInfoId).then((res) => {
     const data = res.data.data;
     const qlist = data["questionList"];
@@ -200,6 +199,7 @@ const checkSumit=()=>{
                 h('span', '不可以提交试卷！'),
             ])
         });
+        return;
     }
 
     if(answerNumber.value!=questionList.value.length){
@@ -224,11 +224,62 @@ const checkSumit=()=>{
 
 const sumbit = () => {
     examSubmitRequest(examInfoId).then(res => {
-        Message.success("提交成功~")
+        removeEventListeners()
         router.back()
     }).catch(e=>{
-        Message.success("提交失败，请联系老师")
+        Message.error("提交失败，请联系老师")
     })
+}
+
+// 移除事件监听器的函数
+const removeEventListeners = () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange)
+    document.removeEventListener("paste", handlePaste)
+    if(!examInfo.value.isCopyPaste) {
+        document.removeEventListener("contextmenu", handleContextMenu)
+        document.removeEventListener("selectstart", handleSelectStart)
+        document.removeEventListener('keydown', handleKeyDown)
+    }
+}
+
+// 事件处理函数
+const handleVisibilityChange = () => {
+    if (document.visibilityState != "visible") {
+        answerAction({
+            status: "PAUSE",
+            info: "",
+        });
+    }
+}
+
+const handlePaste = (e) => {
+    console.log(e);
+    answerAction({
+        status: "PASTE",
+        info: "",
+    });
+}
+
+const handleContextMenu = function (e) {
+    e.preventDefault();
+}
+
+const handleSelectStart = function (e) {
+    e.preventDefault();
+}
+
+const handleKeyDown = function (e) {
+    if (e.key == 'F12') {
+        e.preventDefault();
+    }
+}
+
+// 倒计时结束自动提交
+const countDownFinish = () => {
+    Message.warning('考试时间已到，系统将自动提交试卷')
+    // 移除监控相关的事件监听器
+    removeEventListeners()
+    sumbit()
 }
 
 const getQuestionList = (qList) => {
@@ -404,38 +455,17 @@ const monitorAction = () => {
     // if (import.meta.env.DEV) {
     //     return
     // }
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState != "visible") {
-            answerAction({
-                status: "PAUSE",
-                info: "",
-            });
-        }
-    });
-    document.addEventListener("paste", (e) => {
-        console.log(e);
-        answerAction({
-            status: "PASTE",
-            info: "",
-        });
-    });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("paste", handlePaste);
    
 };
 const prohibitCopy=()=>{
     // if (import.meta.env.DEV) {
     //     return
     // }
-    document.addEventListener("contextmenu", function (e) {
-        e.preventDefault(); // 阻止默认事件
-    });
-    document.addEventListener("selectstart", function (e) {
-        e.preventDefault();
-    });
-    document.addEventListener('keydown', function (e) {
-        if (e.key == 'F12') {
-            e.preventDefault(); // 如果按下键F12,阻止事件
-        }
-    });
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("selectstart", handleSelectStart);
+    document.addEventListener('keydown', handleKeyDown);
 }
 
 

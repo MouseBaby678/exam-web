@@ -60,9 +60,6 @@
         </template>
         <template #operate="{ record }">
             <div class="operate">
-                <a-button type="primary" :disabled="record.answerStatus != 'START'" style="margin-left: 10px;">
-                    交卷
-                </a-button>
                 <a-badge :count="(record.actionPage?.total ?? 0)">
                     <a-button type="primary" :disabled="(record.actionPage == null)" style="margin-left: 10px;"
                         @click="showStudnetLog(record.userAuthInfo)">

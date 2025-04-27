@@ -25,9 +25,6 @@
                     <a-option value="">全部班级</a-option>
                     <a-option v-for="item in classList" :value="item.id" :key="item.id">{{ item.name }}</a-option>
                 </a-select>
-                <a-button type="primary" v-if="pageKey == 'ConsoleOutline'" style="margin-right: 5px;">
-                    全部收卷
-                </a-button>
                 <a-button type="primary" status="danger" v-if="(pageKey == 'ConsoleReview')" style="margin-right: 5px;">
                     重新评阅
                 </a-button>
