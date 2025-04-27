@@ -46,7 +46,7 @@
                     <!-- </router-link> -->
                 </a-col>
             </a-row>
-            <a-pagination style="justify-content: center;margin:10px 0"  v-model:current="currPage"  @change="getCourseList"  :total="total" :current="currPage" :page-size="10" />
+            <a-pagination style="justify-content: center;margin:10px 0"  v-model:current="currPage"  @change="getCourseList"  :total="total" :current="currPage" :page-size="12" />
         </div>
         <a-empty v-else />
         <!-- 邀请码添加课程 -->
