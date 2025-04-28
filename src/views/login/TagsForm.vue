@@ -197,17 +197,34 @@ const submit=()=>{
   if(loginType==0){
     loginRequest(loginForm.username,loginForm.password).then(res=>{
       userStore.token="Bearer "+res.data.access_token;
+      // 先获取用户信息
       userStore.getUserInfo().then(()=>{
-        Message.success("登录成功")
-        loading.value=false;
-        router.push({
-          name:"CourseCenterRole",
-          params: {
-            role: userStore.isTeacher ? 'teacher' : 'student'
-          }
+        // 再获取基础用户信息
+        userStore.getBaseUserInfo().then(()=>{
+          Message.success("登录成功")
+          loading.value=false;
+          // 确保在获取完所有信息后再进行跳转
+          router.push({
+            name:"CourseCenterRole",
+            params: {
+              role: userStore.isTeacher ? 'teacher' : 'student'
+            }
+          })
         })
+      }).catch(err=>{
+        loading.value=false;
+        // 处理登录失败情况
+        let errorMessage = "登录失败";
+        if (err && err.data) {
+          // 如果有详细错误信息，则显示
+          if (err.data.error_description) {
+            errorMessage = err.data.error_description;
+          } else if (err.data.msg) {
+            errorMessage = err.data.msg;
+          }
+        }
+        Message.error(errorMessage);
       })
-      userStore.getBaseUserInfo()
     }).catch(err=>{
       loading.value=false;
       // 处理登录失败情况
