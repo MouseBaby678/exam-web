@@ -83,6 +83,20 @@
           >
           </a-input>
         </a-form-item>
+        <a-form-item
+          field="role"
+          :hide-label="true"
+          :rules="form_rules.role"
+        >
+          <a-select
+            size="large"
+            v-model="registerForm.role"
+            placeholder="请选择角色"
+          >
+            <a-option value="0">学生</a-option>
+            <a-option value="1">教师</a-option>
+          </a-select>
+        </a-form-item>
         <a-form-item field="password" :hide-label="true" :rules="form_rules.password">
           <a-input-password
             size="large"
@@ -182,7 +196,8 @@ const registerForm=reactive({
   username:'',
   password:'',
   checkPass:'',
-  verifiCode:''
+  verifiCode:'',
+  role: '0' // 默认选择学生角色
 })
 const forgetForm=reactive({
   email:"",
@@ -384,7 +399,10 @@ const form_rules = {
     // { maxLength: 16, message: "个人博客地址/邮箱不能超过16个字符~"},
     // { minLength: 5, message: "个人博客地址/邮箱至少5个字符~" },
     // { match: /^\w+([-+.]\w+)*(@\w+([-.]\w+)*\.\w+([-.]\w+)*)?$/, message: "邮箱格式不正确~" },
-  ]
+  ],
+  role: [
+    { required: true, message: "请选择角色~" }
+  ],
 };
 </script>
 <style lang="less" scoped>
